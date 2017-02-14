@@ -14,6 +14,7 @@ module CCS
   , rec'
   , restrict
   , mapLabels
+  , var
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -23,8 +24,9 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Control.Newtype
 
-import Classes
+import TransitionSystem
 import Labels
+import Internal.HasVars
 
 --------------------------------------------------------------------------------
 --  CCS AST Datatype

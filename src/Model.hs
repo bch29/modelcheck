@@ -3,33 +3,11 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-module Classes where
+module Model where
 
 import GHC.Exts (Constraint)
 
-import Data.Map (Map)
-
--- | Represents a type of expressions which contains variables. These variables
--- can be substituted and used as expressions.
-class HasVars v e | e -> v where
-  -- | Creates an expression from a variable name.
-  var :: v -> e
-
-  {- |
-  @
-  subst var val expr
-  @
-
-  Substitutes all occurrences of the variable @var@ with the value @val@ in the
-  expression @expr@.
-  -}
-  subst :: v -> e -> e -> e
-
--- | Describes a transition system with states in @s@ and transition labels in
--- @l@.
-class TransitionSystem l s | s -> l where
-  -- | Returns all possible transitions from the given state.
-  transitions :: s -> Map l [s]
+import TransitionSystem
 
 -- | Represents a type of models over transition systems which can be checked
 -- for truth.

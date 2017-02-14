@@ -5,7 +5,7 @@ import Test.Hspec
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
-import Classes
+import Model
 import Prop
 import CCS
 

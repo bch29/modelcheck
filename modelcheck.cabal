@@ -15,10 +15,12 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Classes
+  exposed-modules:     TransitionSystem
+                     , Model
                      , Prop
                      , CCS
                      , Labels
+  other-modules:       Internal.HasVars
   build-depends:       base >= 4.7 && < 5
                      , containers
                      , mtl

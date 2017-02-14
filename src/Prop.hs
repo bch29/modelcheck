@@ -6,13 +6,16 @@
 
 module Prop
   (
+    -- * Model checking
+    module Model
     -- * Proposition abstract syntax
-    Prop(..)
+  , Prop(..)
     -- * Proposition construction combinators
   , whenTrans
   , whenTransDot
   , nu
   , mu
+  , var
   ) where
 
 import qualified Data.Map   as Map
@@ -20,7 +23,9 @@ import           Data.Maybe (fromMaybe)
 import           Data.Set   (Set)
 import qualified Data.Set   as Set
 
-import           Classes
+import           TransitionSystem
+import           Model
+import Internal.HasVars
 
 -- | A proposition over transition systems in the modal μ-calculus. Contains
 -- variables of type @v@ and transition labels of type @l@. Acts on a transition

@@ -37,6 +37,9 @@ infixr 5 :|:
 infixr 4 .+.
 infix 0 .=
 
+-- | The type used to label nondeterministic choices.
+type ChoiceLabel = Int
+
 -- | Represents a process in the pure CCS concurrent language. Contains
 -- recursive variables of type @p@ and transition labels of type @l@.
 data CCS p l

@@ -3,8 +3,6 @@
 
 module Labels where
 
-type ChoiceLabel = Int
-
 data Label l = Pos l | Neg l | Tau
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 

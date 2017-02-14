@@ -1,9 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 module TransitionSystem where
 
-import Data.Map (Map)
+import           Data.Map (Map)
 
 -- | Describes a transition system with states in @s@ and transition labels in
 -- @l@.

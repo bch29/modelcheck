@@ -1,13 +1,13 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TypeFamilies           #-}
 
 module Model where
 
-import GHC.Exts (Constraint)
+import           GHC.Exts         (Constraint)
 
-import TransitionSystem
+import           TransitionSystem
 
 -- | Represents a type of models over transition systems which can be checked
 -- for truth.

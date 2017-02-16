@@ -51,7 +51,6 @@ data CCS p l
   | Sigma (Map ChoiceLabel (CCS p l))
     -- ^ @'Sigma' ps@ is a nondeterministic choice of processes. Whenever some
     -- @p_i@ in @ps@ can transition to @p'@, this can also transition to @p'@.
-    --
     -- Corresponds with @∑_I p_i@ where @I@ is the set of keys of @ps@ and the
     -- @p_i@ are the corresponding values.
   | CCS p l :|: CCS p l

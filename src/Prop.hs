@@ -1,6 +1,5 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 
@@ -11,7 +10,9 @@ module Prop
     -- * Proposition abstract syntax
   , Prop(..)
     -- * Proposition construction combinators
+  , (<>-)
   , whenTrans
+  , (||-)
   , whenTransDot
   , nu
   , mu
@@ -33,48 +34,43 @@ import           TransitionSystem
 data Prop v l s
   = Const (Set s)
     -- ^ Succeeds when given exactly those process states in the given set.
-    --
-    -- @'Const' ('Set.fromList' [p_1, ..., p_k])@ corresponds with
-    -- @{p_1, ..., p_2}@
+    -- @'Const' ('Set.fromList' [p_1, ..., p_k])@ corresponds with @{p_1, ...,
+    -- p_2}@
   | PTrue
-    -- ^ Always succeeds.
-    --
-    -- Corresponds with @T@.
+    -- ^ Always succeeds. Corresponds with @T@.
   | PFalse
-    -- ^ Always fails.
-    --
-    -- Corresponds with @F@.
+    -- ^ Always fails. Corresponds with @F@.
   | Not (Prop v l s)
-    -- ^ Succeeds exactly when the given proposition fails.
-    --
-    -- @'Not' A@ corresponds with @¬ A@.
+    -- ^ Succeeds exactly when the given proposition fails. @'Not' A@
+    -- corresponds with @¬ A@.
   | Prop v l s :&&: Prop v l s
-    -- ^ Succeeds when both of the arguments succeed.
-    --
-    -- @A ':&&:' B@ corresponds with @A ∧ B@.
+    -- ^ Succeeds when both of the arguments succeed. @A ':&&:' B@ corresponds
+    -- with @A ∧ B@.
   | Prop v l s :||: Prop v l s
-    -- ^ Succeeds when either of the arguments succeeds.
-    --
-    -- @A ':||:' B@ corresponds with @A ∨ B@.
+    -- ^ Succeeds when either of the arguments succeeds. @A ':||:' B@
+    -- corresponds with @A ∨ B@.
   | Trans l (Prop v l s)
     -- ^ Succeeds when the state can transition with the given label, then the
-    -- given proposition also succeeds.
-    --
-    -- @'Trans' l A@ corresponds with @\<l\> A@.
+    -- given proposition also succeeds. @'Trans' l A@ corresponds with @\<l\>
+    -- A@.
   | TransDot (Prop v l s)
     -- ^ Succeeds when the state can transition with any label, then the given
-    -- proposition also succeeds.
-    --
-    -- @'TransDot' A@ corresponds with @\<.\> A@.
+    -- proposition also succeeds. @'TransDot' A@ corresponds with @\<.\> A@.
   | VarProp v
     -- ^ References a variable bound by another constructor, such as 'Nu'.
   | Nu v (Set s) (Prop v l s)
     -- ^ @'Nu' X ('Set.fromList' [p_1, ..., p_k]) A@ takes the greatest fixed
     -- point of the expression @A@, with @X@ bound recursively in @A@. Also
-    -- matches any process in the given set.
-    --
-    -- Corresponds with @ν X {p_1, ..., p_k} A@.
+    -- matches any process in the given set. Corresponds with @ν X {p_1, ...,
+    -- p_k} A@.
   deriving (Show, Eq, Ord)
+
+-- | Succeeds when the state can transition with the given label, then the given
+-- proposition also succeeds.
+--
+-- @'Trans' l A@ corresponds with @\<l\> A@.
+(<>-) :: l -> Prop v l s -> Prop v l s
+(<>-) = Trans
 
 -- | Succeeds if, whenever the state can transition with the given label, then
 -- the given proposition also succeeds.
@@ -82,6 +78,13 @@ data Prop v l s
 -- @'whenTrans' l A@ corresponds with @[l] A@.
 whenTrans :: l -> Prop v l s -> Prop v l s
 whenTrans lbl = Not . Trans lbl . Not
+
+-- | Succeeds if, whenever the state can transition with the given label, then
+-- the given proposition also succeeds.
+--
+-- @l '||-' A@ corresponds with @[l] A@.
+(||-) :: l -> Prop v l s -> Prop v l s
+(||-) = whenTrans
 
 -- | Succeeds if, whenever the state can transition with any label, then the
 -- given proposition also succeeds.

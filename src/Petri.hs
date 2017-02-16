@@ -4,10 +4,9 @@
 module Petri where
 
 import           Control.Monad    (guard)
-import           Control.Newtype
 import           Data.Map         (Map)
 import qualified Data.Map         as Map
-import           Data.Maybe       (catMaybes, fromMaybe)
+import           Data.Maybe       (catMaybes)
 import           Data.Set         (Set)
 import qualified Data.Set         as Set
 
@@ -29,13 +28,13 @@ data Petri e c =
   }
   deriving (Show, Eq, Ord)
 
-instance (Ord e, Ord c) => TransitionSystem e (Petri e c) where
+instance (Ord c) => TransitionSystem e (Petri e c) where
 
   transitions petri =
     let events = petriEvents petri
         markings = petriMarkings petri
 
-        transitionOn event (preconditions, postconditions) = do
+        transitionOn (preconditions, postconditions) = do
           let conditionValues conds = catMaybes [Map.lookup cond (petriMarkings petri) | cond <- Set.toList conds]
               preValues = conditionValues preconditions
               postValues = conditionValues postconditions
@@ -52,4 +51,4 @@ instance (Ord e, Ord c) => TransitionSystem e (Petri e c) where
 
           return [petri { petriMarkings = newMarkings }]
 
-    in Map.mapMaybeWithKey transitionOn events
+    in Map.mapMaybe transitionOn events

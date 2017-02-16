@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -8,6 +9,7 @@ module CCS
     -- * CCS abstract syntax
   , CCS(..)
     -- * CCS construction combinators
+  , (.->)
   , (.=)
   , sigma
   , (.+.)
@@ -33,12 +35,10 @@ import           TransitionSystem
 --------------------------------------------------------------------------------
 
 infixr 8 :->
+infixr 8 .->
 infixr 5 :|:
 infixr 4 .+.
 infix 0 .=
-
--- | The type used to label nondeterministic choices.
-type ChoiceLabel = Int
 
 -- | Represents a process in the pure CCS concurrent language. Contains
 -- recursive variables of type @p@ and transition labels of type @l@.
@@ -48,11 +48,10 @@ data CCS p l
   | Label l :-> CCS p l
     -- ^ @l ':->' p@ is a process which can transition on label @l@ to become a
     -- new process @p@. Corresponds with @l.p@ or @l -> p@.
-  | Sigma (Map ChoiceLabel (CCS p l))
+  | Sigma [CCS p l]
     -- ^ @'Sigma' ps@ is a nondeterministic choice of processes. Whenever some
     -- @p_i@ in @ps@ can transition to @p'@, this can also transition to @p'@.
-    -- Corresponds with @∑_I p_i@ where @I@ is the set of keys of @ps@ and the
-    -- @p_i@ are the corresponding values.
+    -- Corresponds with @∑_I p_i@.
   | CCS p l :|: CCS p l
     -- ^ Parallel composition. @p_1 ':|:' p_2@ corresponds with @p_1 || p_2@.
   | Restrict (Set l) (CCS p l)
@@ -70,6 +69,9 @@ data CCS p l
 --  CCS construction combinators
 --------------------------------------------------------------------------------
 
+(.->) :: ToLabel (Label l) a => a -> CCS p l -> CCS p l
+x .-> process = toLabel x :-> process
+
 -- | Syntactic sugar for pairing, useful with 'sigma' and 'rec\''.
 (.=) :: a -> b -> (a, b)
 (.=) = (,)
@@ -77,15 +79,14 @@ data CCS p l
 -- | @'sigma' ps@ is a nondeterministic choice of processes. Whenever some @p_i@
 -- in @ps@ can transition to @p'@, this can also transition to @p'@.
 --
--- Corresponds with @∑_I p_i@ where @I@ is the set of keys of @ps@ and the @p_i@
--- are the corresponding values.
-sigma :: [(ChoiceLabel, CCS p l)] -> CCS p l
-sigma = Sigma . Map.fromList
+-- Corresponds with @∑_I p_i@.
+sigma :: [CCS p l] -> CCS p l
+sigma = Sigma
 
 -- | Nondeterministic choice between two processes. Equivalent to a 'sigma'
 -- expression with only two options.
 (.+.) :: CCS v l -> CCS v l -> CCS v l
-p .+. q = sigma [0 .= p, 1 .= q]
+p .+. q = sigma [p, q]
 
 -- | Recursive definition of processes. @'rec\'' p xs@ acts like the member of
 -- @xs@ with key @p@, with each of the keys of @xs@ bound as variables.
@@ -143,9 +144,7 @@ instance (Ord l, Ord p) => TransitionSystem (Label l) (CCS p l) where
   transitions (lbl :-> process) = Map.singleton lbl [process]
 
   transitions (Sigma processes) =
-    ala' UnionAppend foldMap
-    (getMaybe . fmap transitions . (`Map.lookup` processes))
-    (Map.keys processes)
+    ala' UnionAppend foldMap transitions processes
 
   transitions (p :|: q) =
     let pTransitions = transitions p
@@ -161,7 +160,7 @@ instance (Ord l, Ord p) => TransitionSystem (Label l) (CCS p l) where
 
   transitions (Restrict labels process) =
     Map.filterWithKey
-    (\lbl _ -> maybe True (\l -> not (Set.member l labels)) (labelVal lbl))
+    (const . maybe True (not . (`Set.member` labels)) . labelVal)
     (transitions process)
 
   transitions (Remap mapping process) =

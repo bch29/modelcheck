@@ -10,10 +10,10 @@ module Prop
     -- * Proposition abstract syntax
   , Prop(..)
     -- * Proposition construction combinators
-  , (<>-)
+  , (>->)
   , whenTrans
-  , (||-)
-  , whenTransDot
+  , (|->)
+  , whenTransAny
   , nu
   , mu
   , HasVars(..)
@@ -25,8 +25,12 @@ import           Data.Set         (Set)
 import qualified Data.Set         as Set
 
 import           Internal.HasVars
+import           Labels
 import           Model
 import           TransitionSystem
+
+infixr 4 :&&:
+infixr 3 :||:
 
 -- | A proposition over transition systems in the modal μ-calculus. Contains
 -- variables of type @v@ and transition labels of type @l@. Acts on a transition
@@ -53,9 +57,9 @@ data Prop v l s
     -- ^ Succeeds when the state can transition with the given label, then the
     -- given proposition also succeeds. @'Trans' l A@ corresponds with @\<l\>
     -- A@.
-  | TransDot (Prop v l s)
+  | TransAny (Prop v l s)
     -- ^ Succeeds when the state can transition with any label, then the given
-    -- proposition also succeeds. @'TransDot' A@ corresponds with @\<.\> A@.
+    -- proposition also succeeds. @'TransAny' A@ corresponds with @\<.\> A@.
   | VarProp v
     -- ^ References a variable bound by another constructor, such as 'Nu'.
   | Nu v (Set s) (Prop v l s)
@@ -65,12 +69,15 @@ data Prop v l s
     -- p_k} A@.
   deriving (Show, Eq, Ord)
 
+infixr 5 >->
+infixr 5 |->
+
 -- | Succeeds when the state can transition with the given label, then the given
 -- proposition also succeeds.
 --
 -- @'Trans' l A@ corresponds with @\<l\> A@.
-(<>-) :: l -> Prop v l s -> Prop v l s
-(<>-) = Trans
+(>->) :: ToLabel l a => a -> Prop v l s -> Prop v l s
+x >-> prop = Trans (toLabel x) prop
 
 -- | Succeeds if, whenever the state can transition with the given label, then
 -- the given proposition also succeeds.
@@ -83,15 +90,15 @@ whenTrans lbl = Not . Trans lbl . Not
 -- the given proposition also succeeds.
 --
 -- @l '||-' A@ corresponds with @[l] A@.
-(||-) :: l -> Prop v l s -> Prop v l s
-(||-) = whenTrans
+(|->) :: ToLabel l a => a -> Prop v l s -> Prop v l s
+x |-> prop = whenTrans (toLabel x) prop
 
 -- | Succeeds if, whenever the state can transition with any label, then the
 -- given proposition also succeeds.
 --
--- @'whenTransDot' A@ corresponds with @[.] A@.
-whenTransDot :: Prop v l s -> Prop v l s
-whenTransDot = Not . TransDot . Not
+-- @'whenTransAny' A@ corresponds with @[.] A@.
+whenTransAny :: Prop v l s -> Prop v l s
+whenTransAny = Not . TransAny . Not
 
 -- | @'nu' X A@ takes the greatest fixed point of the expression @A@, with @X@
 -- bound recursively in @A@.
@@ -114,7 +121,7 @@ instance (Eq v) => HasVars v (Prop v l s) where
   subst v val (p1 :&&: p2) = subst v val p1 :&&: subst v val p2
   subst v val (p1 :||: p2) = subst v val p1 :||: subst v val p2
   subst v val (Trans lbl prop) = Trans lbl (subst v val prop)
-  subst v val (TransDot prop) = TransDot (subst v val prop)
+  subst v val (TransAny prop) = TransAny (subst v val prop)
   subst v val (VarProp v')
     | v == v' = val
     | otherwise = var v'
@@ -139,7 +146,7 @@ instance (Eq v, Ord l) => Model l (Prop v l) where
         lblTransitions = fromMaybe [] (Map.lookup lbl allTransitions)
     in any (check prop) lblTransitions
 
-  check (TransDot prop) process =
+  check (TransAny prop) process =
     let allTransitions = Map.foldr (++) [] (transitions process)
     in any (check prop) allTransitions
 

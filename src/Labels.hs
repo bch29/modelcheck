@@ -1,10 +1,22 @@
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor          #-}
+{-# LANGUAGE DeriveTraversable      #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 module Labels where
 
 data Label l = Pos l | Neg l | Tau
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+class ToLabel l a where
+  toLabel :: a -> l
+
+instance ToLabel (Label Char) Char where
+  toLabel = Pos
+
+instance {-# OVERLAPPABLE #-} ToLabel l l where
+  toLabel = id
 
 opposite :: Label l -> Maybe (Label l)
 opposite (Pos x) = Just (Neg x)

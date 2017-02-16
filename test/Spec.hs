@@ -9,7 +9,6 @@ import           CCS
 import           Model
 import           Petri
 import           Prop
-import           TransitionSystem
 
 main :: IO ()
 main = hspec $
@@ -28,10 +27,10 @@ main = hspec $
 
 -- Rec(P = a.P)
 simpleRec :: CCS Char Char
-simpleRec = rec' 'P' ['P' .= Pos 'a' :-> VarCCS 'P']
+simpleRec = rec' 'P' ['P' .= 'a' .-> var 'P']
 
 simpleProp :: Prop Char (Label Char) p
-simpleProp = nu 'X' (Trans (Pos 'a') (VarProp 'X'))
+simpleProp = nu 'X' ('a' >-> var 'X')
 
 -- complexRec :: CCS Char Char
 -- complexRec = Rec 'P' $ Map.
@@ -47,22 +46,22 @@ simpleProp = nu 'X' (Trans (Pos 'a') (VarProp 'X'))
 protocol :: CCS String Char
 protocol =
   rec' "Protocol"
-  [ "Sender"   .= Pos 'a' :-> var "Sender'"
-  , "Sender'"  .= Neg 'b' :-> (Pos 'd' :-> var "Sender" .+.
-                               Pos 'c' :-> var "Sender'")
-  , "Medium"   .= Pos 'b' :-> (Neg 'c' :-> var "Medium" .+.
-                               Neg 'e' :-> var "Medium")
-  , "Receiver" .= Pos 'e' :-> Pos 'f' :-> Neg 'd' :-> var "Receiver"
+  [ "Sender"   .=     'a' .-> var "Sender'"
+  , "Sender'"  .= Neg 'b' .-> ('d' .-> var "Sender" .+.
+                               'c' .-> var "Sender'")
+  , "Medium"   .= 'b' .-> (Neg 'c' .-> var "Medium" .+.
+                           Neg 'e' .-> var "Medium")
+  , "Receiver" .= 'e' .-> 'f' .-> Neg 'd' .-> var "Receiver"
   , "Protocol" .= restrict "bcde" (var "Sender" :|:
                                    var "Medium" :|:
                                    var "Receiver")
   ]
 
 protocolProp :: Prop Char (Label Char) p
-protocolProp = inv (whenTrans (Pos 'a') (ev (Trans (Pos 'f') PTrue)))
+protocolProp = inv ('a' |-> ev ('f' >-> PTrue))
   where
-    inv propA = nu 'X' (propA :&&: whenTransDot (var 'X'))
-    ev propA = mu 'X' (propA :||: (TransDot PTrue :&&: whenTransDot (var 'X')))
+    inv propA = nu 'X' (propA :&&: whenTransAny (var 'X'))
+    ev propA = mu 'X' (propA :||: (TransAny PTrue :&&: whenTransAny (var 'X')))
 
 testPetri :: Petri Char Int
 testPetri = Petri
@@ -81,12 +80,12 @@ testPetri = Petri
                    ]
   }
 
--- nu X. <a><b><c>X or <b><a><c>X
+-- | nu X. <a><b><c>X or <b><a><c>X
 petriProp :: Prop Char Char (Petri Char Int)
-petriProp = nu 'X' (Trans 'a' (Trans 'b' (Trans 'c' (var 'X'))) :||:
-                    Trans 'b' (Trans 'a' (Trans 'c' (var 'X')))
+petriProp = nu 'X' ('a' >-> 'b' >-> 'c' >-> var 'X' :||:
+                    'b' >-> 'a' >-> 'c' >-> var 'X'
                    )
 
--- nu X. <a>X
+-- | nu X. <a>X
 petriProp' :: Prop Char Char (Petri Char Int)
-petriProp' = nu 'X' (Trans 'a' (var 'X'))
+petriProp' = nu 'X' ('a' >-> var 'X')

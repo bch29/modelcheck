@@ -10,11 +10,7 @@ class HasVars v e | e -> v where
   var :: v -> e
 
   {- |
-  @
-  subst var val expr
-  @
-
-  Substitutes all occurrences of the variable @var@ with the value @val@ in the
-  expression @expr@.
+  @subst var val expr@ substitutes all occurrences of the variable @var@ with
+  the value @val@ in the expression @expr@.
   -}
   subst :: v -> e -> e -> e

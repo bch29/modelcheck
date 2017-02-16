@@ -15,7 +15,7 @@ module Prop
   , whenTransDot
   , nu
   , mu
-  , var
+  , HasVars(..)
   ) where
 
 import qualified Data.Map   as Map
@@ -60,12 +60,12 @@ data Prop v l s
     -- ^ Succeeds when the state can transition with the given label, then the
     -- given proposition also succeeds.
     --
-    -- @'Trans' l A@ corresponds with @<l> A@.
+    -- @'Trans' l A@ corresponds with @\<l\> A@.
   | TransDot (Prop v l s)
     -- ^ Succeeds when the state can transition with any label, then the given
     -- proposition also succeeds.
     --
-    -- @'TransDot' A@ corresponds with @<.> A@.
+    -- @'TransDot' A@ corresponds with @\<.\> A@.
   | VarProp v
     -- ^ References a variable bound by another constructor, such as 'Nu'.
   | Nu v (Set s) (Prop v l s)
@@ -90,14 +90,14 @@ whenTrans lbl = Not . Trans lbl . Not
 whenTransDot :: Prop v l s -> Prop v l s
 whenTransDot = Not . TransDot . Not
 
--- ^ @'nu' X A@ takes the greatest fixed point of the expression @A@, with @X@
+-- | @'nu' X A@ takes the greatest fixed point of the expression @A@, with @X@
 -- bound recursively in @A@.
 --
 -- Corresponds with @ν X. A@.
 nu :: v -> Prop v l s -> Prop v l s
 nu v = Nu v Set.empty
 
--- ^ @'nu' X A@ takes the least fixed point of the expression @A@, with @X@
+-- | @'mu' X A@ takes the least fixed point of the expression @A@, with @X@
 -- bound recursively in @A@.
 --
 -- Corresponds with @μ X. A@.

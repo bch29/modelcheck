@@ -14,7 +14,7 @@ module CCS
   , rec'
   , restrict
   , mapLabels
-  , var
+  , HasVars(..)
   ) where
 
 import Data.Maybe (fromMaybe)

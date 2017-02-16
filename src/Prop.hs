@@ -1,8 +1,8 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE InstanceSigs          #-}
 
 module Prop
   (
@@ -18,14 +18,14 @@ module Prop
   , HasVars(..)
   ) where
 
-import qualified Data.Map   as Map
-import           Data.Maybe (fromMaybe)
-import           Data.Set   (Set)
-import qualified Data.Set   as Set
+import qualified Data.Map         as Map
+import           Data.Maybe       (fromMaybe)
+import           Data.Set         (Set)
+import qualified Data.Set         as Set
 
-import           TransitionSystem
+import           Internal.HasVars
 import           Model
-import Internal.HasVars
+import           TransitionSystem
 
 -- | A proposition over transition systems in the modal μ-calculus. Contains
 -- variables of type @v@ and transition labels of type @l@. Acts on a transition

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module CCS
@@ -17,16 +17,16 @@ module CCS
   , HasVars(..)
   ) where
 
-import Data.Maybe (fromMaybe)
-import Data.Set (Set)
-import qualified Data.Set as Set
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Control.Newtype
+import           Control.Newtype
+import           Data.Map         (Map)
+import qualified Data.Map         as Map
+import           Data.Maybe       (fromMaybe)
+import           Data.Set         (Set)
+import qualified Data.Set         as Set
 
-import TransitionSystem
-import Labels
-import Internal.HasVars
+import           Internal.HasVars
+import           Labels
+import           TransitionSystem
 
 --------------------------------------------------------------------------------
 --  CCS AST Datatype

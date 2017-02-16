@@ -1,13 +1,15 @@
 module Main where
 
-import Test.Hspec
+import           Test.Hspec
 
-import qualified Data.Set as Set
-import qualified Data.Map as Map
+import qualified Data.Map   as Map
+import qualified Data.Set   as Set
 
-import Model
-import Prop
-import CCS
+import           CCS
+import           Model
+import           Petri
+import           Prop
+import           TransitionSystem
 
 main :: IO ()
 main = hspec $
@@ -17,6 +19,12 @@ main = hspec $
 
     it "protocol does not satisfy protocolProp" $
       check protocolProp protocol `shouldBe` False
+
+    it "testPetri satisfies petriProp" $
+      check petriProp testPetri `shouldBe` True
+
+    it "testPetri does not satisfy petriProp'" $
+      check petriProp' testPetri `shouldBe` False
 
 -- Rec(P = a.P)
 simpleRec :: CCS Char Char
@@ -55,3 +63,30 @@ protocolProp = inv (whenTrans (Pos 'a') (ev (Trans (Pos 'f') PTrue)))
   where
     inv propA = nu 'X' (propA :&&: whenTransDot (var 'X'))
     ev propA = mu 'X' (propA :||: (TransDot PTrue :&&: whenTransDot (var 'X')))
+
+testPetri :: Petri Char Int
+testPetri = Petri
+  { petriEvents =
+      Map.fromList [ 'a' .= (Set.fromList [0]   , Set.fromList [2]   )
+                   , 'b' .= (Set.fromList [1]   , Set.fromList [3]   )
+                   , 'c' .= (Set.fromList [2, 3], Set.fromList [0, 1])
+                   , 'd' .= (Set.fromList [2, 3], Set.fromList [4]   )
+                   ]
+  , petriMarkings =
+      Map.fromList [ 0 .= Marked
+                   , 1 .= Marked
+                   , 2 .= Unmarked
+                   , 3 .= Unmarked
+                   , 4 .= Unmarked
+                   ]
+  }
+
+-- nu X. <a><b><c>X or <b><a><c>X
+petriProp :: Prop Char Char (Petri Char Int)
+petriProp = nu 'X' (Trans 'a' (Trans 'b' (Trans 'c' (var 'X'))) :||:
+                    Trans 'b' (Trans 'a' (Trans 'c' (var 'X')))
+                   )
+
+-- nu X. <a>X
+petriProp' :: Prop Char Char (Petri Char Int)
+petriProp' = nu 'X' (Trans 'a' (var 'X'))
